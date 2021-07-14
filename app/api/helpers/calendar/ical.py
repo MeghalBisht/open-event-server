@@ -7,6 +7,7 @@ from icalendar import Calendar, Event
 from sqlalchemy import or_
 from sqlalchemy.orm import joinedload
 
+from app.models.helpers.versioning import clean_html, clean_up_string
 from app.models.session import Session
 
 
@@ -24,11 +25,13 @@ def to_ical(event, include_sessions=False, my_schedule=False, user_id=None):
     event_component.add('dtstart', event.starts_at_tz)
     event_component.add('dtend', event.ends_at_tz)
     event_component.add('location', event.normalized_location)
-    event_component.add('description', event.description)
+    event_component.add('description', clean_html(clean_up_string(event.description)))
     if event.has_coordinates:
         event_component.add('geo', (event.latitude, event.longitude))
     if event.owner_description:
-        event_component.add('organizer', event.owner_description)
+        event_component.add(
+            'organizer', clean_html(clean_up_string(event.owner_description))
+        )
 
     cal.add_component(event_component)
 
